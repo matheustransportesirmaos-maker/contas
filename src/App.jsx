@@ -3,7 +3,6 @@ import { Helmet } from 'react-helmet';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import { Toaster } from './components/ui/toaster';
-import { supabase } from './supabaseClient';
 
 function App() {
   const [user, setUser] = useState(null);
