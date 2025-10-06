@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet';
 import Login from '@/components/Login';
 import Dashboard from '@/components/Dashboard';
 import { Toaster } from '@/components/ui/toaster';
+import { supabase } from '@/supabaseClient'; // ✅ import do Supabase
 
 function App() {
   const [user, setUser] = useState(null);
@@ -14,11 +15,13 @@ function App() {
   });
 
   useEffect(() => {
+    // Recupera usuário logado localmente
     const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
-    
+
+    // Recupera configurações de personalização
     const savedSettings = JSON.parse(localStorage.getItem('personalizacao') || '{}');
     if (savedSettings.companyName || savedSettings.logo || savedSettings.primaryColor) {
       setPersonalizacao(prev => ({ ...prev, ...savedSettings }));
@@ -49,7 +52,10 @@ function App() {
     localStorage.setItem('currentUser', JSON.stringify(userData));
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Logout no Supabase (caso esteja usando Auth)
+    await supabase.auth.signOut().catch(console.error);
+
     setUser(null);
     localStorage.removeItem('currentUser');
   };
@@ -73,16 +79,20 @@ function App() {
     <>
       <Helmet>
         <title>{personalizacao.companyName} - Gestão Empresarial</title>
-        <meta name="description" content="Sistema completo de gestão empresarial com controle de faturas, contas a pagar e receber" />
+        <meta
+          name="description"
+          content="Sistema completo de gestão empresarial com controle de faturas, contas a pagar e receber"
+        />
       </Helmet>
       {!user ? (
-        <Login onLogin={handleLogin} />
+        <Login onLogin={handleLogin} supabase={supabase} /> // ✅ passa supabase para o Login se quiser usar auth
       ) : (
-        <Dashboard 
-          user={user} 
-          onLogout={handleLogout} 
+        <Dashboard
+          user={user}
+          onLogout={handleLogout}
           personalizacao={personalizacao}
           updatePersonalizacao={updatePersonalizacao}
+          supabase={supabase} // ✅ passa supabase para Dashboard caso precise
         />
       )}
       <Toaster />
